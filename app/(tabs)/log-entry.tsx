@@ -26,6 +26,7 @@ export default function LogEntryScreen() {
   const [entryTime, setEntryTime] = useState(nowTime());
   const [notes, setNotes] = useState('');
   const [amountError, setAmountError] = useState<string | undefined>();
+  const [saveError, setSaveError] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -37,6 +38,7 @@ export default function LogEntryScreen() {
     if (!activeChild) return;
 
     setAmountError(undefined);
+    setSaveError(undefined);
     setSaving(true);
     try {
       await createEntry({
@@ -52,6 +54,9 @@ export default function LogEntryScreen() {
       setEntryDate(today());
       setEntryTime(nowTime());
       router.replace('/(tabs)/dashboard');
+    } catch (error) {
+      console.error('Failed to save entry', error);
+      setSaveError("Couldn't save this feeding. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -83,6 +88,7 @@ export default function LogEntryScreen() {
           placeholder="Optional"
         />
 
+        {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
         <Button label="Save entry" onPress={handleSave} loading={saving} />
       </ScrollView>
     </SafeAreaView>
@@ -96,5 +102,11 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
+  },
+  saveError: {
+    ...typography.caption,
+    color: colors.danger,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
   },
 });

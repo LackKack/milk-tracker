@@ -26,6 +26,7 @@ export default function OnboardingScreen() {
   const [weight, setWeight] = useState(activeChild?.weightKg?.toString() ?? '');
   const [height, setHeight] = useState(activeChild?.heightCm?.toString() ?? '');
   const [nameError, setNameError] = useState<string | undefined>();
+  const [saveError, setSaveError] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -34,6 +35,7 @@ export default function OnboardingScreen() {
       return;
     }
     setNameError(undefined);
+    setSaveError(undefined);
     setSaving(true);
     try {
       await saveProfile({
@@ -49,6 +51,9 @@ export default function OnboardingScreen() {
       } else {
         router.replace('/(tabs)/dashboard');
       }
+    } catch (error) {
+      console.error('Failed to save profile', error);
+      setSaveError("Couldn't save the profile. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -110,6 +115,7 @@ export default function OnboardingScreen() {
           keyboardType="decimal-pad"
         />
 
+        {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
         <Button label="Save" onPress={handleSave} loading={saving} />
       </ScrollView>
     </SafeAreaView>
@@ -160,5 +166,11 @@ const styles = StyleSheet.create({
   },
   chipTextSelected: {
     color: '#FFFFFF',
+  },
+  saveError: {
+    ...typography.caption,
+    color: colors.danger,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
   },
 });

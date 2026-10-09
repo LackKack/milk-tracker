@@ -1,7 +1,6 @@
-import * as Crypto from 'expo-crypto';
-
 import { webDb } from '../db/webDb';
 import { APP_SETTINGS_KEYS } from '../../lib/constants';
+import { newId } from '../../lib/id';
 import { getSetting, setSetting } from '../../lib/settingsStore';
 import type { Child, NewChildInput } from '../../models/Child';
 import type { ChildRepository } from './types';
@@ -15,7 +14,7 @@ class DexieChildRepository implements ChildRepository {
   }
 
   async createChild(input: NewChildInput): Promise<Child> {
-    const id = Crypto.randomUUID();
+    const id = newId();
     const now = new Date().toISOString();
     const child: Child = { id, ...input, createdAt: now, updatedAt: now };
     await webDb.children.put(child);

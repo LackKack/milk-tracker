@@ -1,12 +1,11 @@
-import * as Crypto from 'expo-crypto';
-
 import { webDb } from '../db/webDb';
+import { newId } from '../../lib/id';
 import type { MilkEntry, MonthSummaryDay, NewMilkEntryInput } from '../../models/MilkEntry';
 import type { MilkEntryRepository } from './types';
 
 class DexieMilkEntryRepository implements MilkEntryRepository {
   async create(input: NewMilkEntryInput): Promise<MilkEntry> {
-    const id = Crypto.randomUUID();
+    const id = newId();
     const now = new Date().toISOString();
     const entry: MilkEntry = { id, ...input, createdAt: now };
     await webDb.milkEntries.put(entry);
