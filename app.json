@@ -7,16 +7,21 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "baseUrl": "/milk-tracker"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFD6E5",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -24,6 +29,10 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
+      "name": "Milk Tracker",
+      "shortName": "Milk Tracker",
+      "themeColor": "#FF6FA3",
+      "backgroundColor": "#FFF8F3",
       "favicon": "./assets/favicon.png",
       "output": "single",
       "bundler": "metro"
@@ -39,7 +48,8 @@
         {
           "photosPermission": "Allow Milk Tracker to access your photos to set your child's avatar."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }

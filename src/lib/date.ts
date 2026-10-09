@@ -32,64 +32,19 @@ export function addDays(dateStr: string, days: number): string {
   return formatDate(d);
 }
 
-/** 'YYYY-MM' for the given 'YYYY-MM-DD' date string. */
-export function toYearMonth(dateStr: string): string {
-  return dateStr.slice(0, 7);
-}
-
-export function currentYearMonth(): string {
-  return toYearMonth(today());
-}
-
-export function addMonths(yearMonth: string, delta: number): string {
-  const [year, month] = yearMonth.split('-').map(Number);
-  const d = new Date(year, month - 1 + delta, 1);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
-}
-
-export function monthLabel(yearMonth: string): string {
-  const [year, month] = yearMonth.split('-').map(Number);
-  const d = new Date(year, month - 1, 1);
-  return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-}
-
-export function firstDayOfMonth(yearMonth: string): string {
-  return `${yearMonth}-01`;
-}
-
-export function lastDayOfMonth(yearMonth: string): string {
-  const [year, month] = yearMonth.split('-').map(Number);
-  const d = new Date(year, month, 0); // day 0 of next month = last day of this month
-  return formatDate(d);
-}
-
-export interface MonthGridCell {
-  date: string | null; // null for leading/trailing blank cells
-  isCurrentMonth: boolean;
-}
-
 /**
- * Builds a 7-column grid of day cells for a given 'YYYY-MM' month, padded
- * with blank cells so the first day aligns under the correct weekday column
- * (Sunday-first) and the grid always ends on a full week.
+ * Shifts a 'YYYY-MM-DD' date by whole calendar months, clamping the day to
+ * the target month's length (e.g. Mar 31 - 1 month -> Feb 28/29) instead of
+ * overflowing into the following month the way plain setMonth() would.
  */
-export function buildMonthGrid(yearMonth: string): MonthGridCell[] {
-  const first = parseDate(firstDayOfMonth(yearMonth));
-  const last = parseDate(lastDayOfMonth(yearMonth));
-  const leadingBlanks = first.getDay();
-  const daysInMonth = last.getDate();
-
-  const cells: MonthGridCell[] = [];
-  for (let i = 0; i < leadingBlanks; i++) {
-    cells.push({ date: null, isCurrentMonth: false });
-  }
-  for (let day = 1; day <= daysInMonth; day++) {
-    cells.push({ date: `${yearMonth}-${pad(day)}`, isCurrentMonth: true });
-  }
-  while (cells.length % 7 !== 0) {
-    cells.push({ date: null, isCurrentMonth: false });
-  }
-  return cells;
+export function addMonthsToDate(dateStr: string, delta: number): string {
+  const d = parseDate(dateStr);
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + delta);
+  const daysInTargetMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, daysInTargetMonth));
+  return formatDate(d);
 }
 
 export function formatDateForDisplay(dateStr: string): string {
@@ -98,6 +53,23 @@ export function formatDateForDisplay(dateStr: string): string {
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+/** Short form for chart axis labels, e.g. 'Oct 5' (no year). */
+export function formatDateShort(dateStr: string): string {
+  return parseDate(dateStr).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/** Every date from `from` to `to` inclusive, ascending. */
+export function datesBetween(from: string, to: string): string[] {
+  const dates: string[] = [];
+  for (let cursor = from; cursor <= to; cursor = addDays(cursor, 1)) {
+    dates.push(cursor);
+  }
+  return dates;
 }
 
 export function formatTimeForDisplay(timeStr: string): string {

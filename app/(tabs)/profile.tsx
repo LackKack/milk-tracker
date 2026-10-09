@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
@@ -51,6 +52,15 @@ export default function ProfileScreen() {
         </Card>
 
         <Button label="Edit profile" onPress={() => router.push('/onboarding')} />
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Milk Tracker v{Constants.expoConfig?.version ?? '1.0.0'}
+          </Text>
+          <Text style={styles.footerText}>
+            © {new Date().getFullYear()} CuteoTapCode
+          </Text>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -105,5 +115,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     borderTopWidth: 1,
     borderTopColor: colors.border,
+  },
+  footer: {
+    alignItems: 'center',
+    marginTop: spacing.md,
+    gap: spacing.xs,
+  },
+  footerText: {
+    ...typography.caption,
   },
 });

@@ -20,7 +20,9 @@ export default function WelcomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.emoji}>🍼</Text>
+        <View style={styles.badge}>
+          <Text style={styles.emoji}>🍼</Text>
+        </View>
         <Text style={typography.title}>Milk Tracker</Text>
         <Text style={styles.subtitle}>
           Keep track of every feeding — see today&apos;s total, and browse history by day or
@@ -44,9 +46,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  badge: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
   emoji: {
     fontSize: 64,
-    marginBottom: spacing.md,
   },
   subtitle: {
     ...typography.body,

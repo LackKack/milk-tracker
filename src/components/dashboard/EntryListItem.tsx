@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   amount: {
-    ...typography.body,
-    fontWeight: '600',
+    ...typography.bodyStrong,
+    color: colors.primary,
   },
 });

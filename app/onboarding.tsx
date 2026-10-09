@@ -8,6 +8,7 @@ import { Button } from '../src/components/ui/Button';
 import { DateField } from '../src/components/ui/DateField';
 import { FormField } from '../src/components/ui/FormField';
 import { today } from '../src/lib/date';
+import { parseOptionalDecimal } from '../src/lib/number';
 import { GENDERS, GENDER_LABELS, Gender } from '../src/models/Child';
 import { useChildProfile } from '../src/state/useChildProfile';
 import { colors } from '../src/theme/colors';
@@ -40,8 +41,8 @@ export default function OnboardingScreen() {
         dateOfBirth,
         gender,
         avatarUri,
-        weightKg: weight ? Number(weight) : null,
-        heightCm: height ? Number(height) : null,
+        weightKg: parseOptionalDecimal(weight),
+        heightCm: parseOptionalDecimal(height),
       });
       if (isEditing) {
         router.back();
@@ -55,7 +56,7 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={typography.title}>{isEditing ? 'Edit Profile' : "Tell us about your kid"}</Text>
         <Text style={styles.subtitle}>
           This helps personalize the app. You can update it anytime from Profile.

@@ -59,7 +59,7 @@ export default function LogEntryScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={typography.title}>Log a feeding</Text>
 
         <FormField

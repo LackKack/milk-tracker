@@ -6,17 +6,57 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DailyTotalCard } from '../../src/components/dashboard/DailyTotalCard';
 import { DateRangeFilterBar } from '../../src/components/dashboard/DateRangeFilterBar';
 import { EntryListItem } from '../../src/components/dashboard/EntryListItem';
-import { MonthCalendar } from '../../src/components/dashboard/MonthCalendar';
+import { MilkBarChart } from '../../src/components/dashboard/MilkBarChart';
 import { Card } from '../../src/components/ui/Card';
-import { addDays, currentYearMonth, formatDateForDisplay, today } from '../../src/lib/date';
+import { Select, SelectOption } from '../../src/components/ui/Select';
+import {
+  addDays,
+  addMonthsToDate,
+  datesBetween,
+  formatDateForDisplay,
+  today,
+} from '../../src/lib/date';
 import type { MilkEntry } from '../../src/models/MilkEntry';
 import { useAppState } from '../../src/state/AppStateProvider';
 import { useDailyTotal } from '../../src/state/useDailyTotal';
 import { useDateRangeEntries } from '../../src/state/useDateRangeEntries';
-import { useMonthSummary } from '../../src/state/useMonthSummary';
 import { colors } from '../../src/theme/colors';
 import { spacing } from '../../src/theme/spacing';
 import { typography } from '../../src/theme/typography';
+
+type RangePreset = 'yesterday' | 'twoDaysAgo' | 'week' | 'month' | 'custom';
+
+const RANGE_PRESET_OPTIONS: SelectOption<RangePreset>[] = [
+  { value: 'yesterday', label: '1 day ago' },
+  { value: 'twoDaysAgo', label: '2 days ago' },
+  { value: 'week', label: 'A week from current date' },
+  { value: 'month', label: '1 month ago' },
+  { value: 'custom', label: 'Custom range' },
+];
+
+function presetRange(
+  preset: RangePreset,
+  customFrom: string,
+  customTo: string
+): { from: string; to: string } {
+  const t = today();
+  switch (preset) {
+    case 'yesterday': {
+      const d = addDays(t, -1);
+      return { from: d, to: d };
+    }
+    case 'twoDaysAgo': {
+      const d = addDays(t, -2);
+      return { from: d, to: d };
+    }
+    case 'week':
+      return { from: addDays(t, -6), to: t };
+    case 'month':
+      return { from: addMonthsToDate(t, -1), to: t };
+    case 'custom':
+      return { from: customFrom, to: customTo };
+  }
+}
 
 function groupByDate(entries: MilkEntry[]): { date: string; total: number; entries: MilkEntry[] }[] {
   const map = new Map<string, MilkEntry[]>();
@@ -54,15 +94,24 @@ export default function DashboardScreen() {
 
   const { totalMl } = useDailyTotal(childId, today());
 
-  const [yearMonth, setYearMonth] = useState(currentYearMonth());
-  const [selectedDate, setSelectedDate] = useState(today());
-  const { days } = useMonthSummary(childId, yearMonth);
-  const { entries: dayEntries } = useDateRangeEntries(childId, selectedDate, selectedDate);
+  const [preset, setPreset] = useState<RangePreset>('week');
+  const [customFrom, setCustomFrom] = useState(addDays(today(), -6));
+  const [customTo, setCustomTo] = useState(today());
 
-  const [rangeFrom, setRangeFrom] = useState(addDays(today(), -6));
-  const [rangeTo, setRangeTo] = useState(today());
-  const { entries: rangeEntries } = useDateRangeEntries(childId, rangeFrom, rangeTo);
-  const groupedRange = useMemo(() => groupByDate(rangeEntries), [rangeEntries]);
+  const { from, to } = useMemo(
+    () => presetRange(preset, customFrom, customTo),
+    [preset, customFrom, customTo]
+  );
+  const { entries } = useDateRangeEntries(childId, from, to);
+  const grouped = useMemo(() => groupByDate(entries), [entries]);
+
+  const chartData = useMemo(() => {
+    const totalsByDate = new Map(grouped.map((g) => [g.date, g.total]));
+    return datesBetween(from, to).map((date) => ({
+      date,
+      totalMl: totalsByDate.get(date) ?? 0,
+    }));
+  }, [grouped, from, to]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -76,42 +125,29 @@ export default function DashboardScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={typography.heading}>Month view</Text>
-          <Card style={styles.calendarCard}>
-            <MonthCalendar
-              yearMonth={yearMonth}
-              days={days}
-              selectedDate={selectedDate}
-              onChangeMonth={setYearMonth}
-              onSelectDay={setSelectedDate}
-            />
-          </Card>
-
-          <Card style={styles.dayDetailCard}>
-            <Text style={styles.dayDetailTitle}>{formatDateForDisplay(selectedDate)}</Text>
-            {dayEntries.length === 0 ? (
-              <Text style={styles.emptyText}>No entries logged.</Text>
-            ) : (
-              dayEntries.map((entry) => (
-                <EntryListItem key={entry.id} entry={entry} onPress={openEntry} />
-              ))
-            )}
-          </Card>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={typography.heading}>History by date range</Text>
+          <Text style={typography.heading}>History</Text>
           <Card>
-            <DateRangeFilterBar
-              from={rangeFrom}
-              to={rangeTo}
-              onChangeFrom={setRangeFrom}
-              onChangeTo={setRangeTo}
-            />
-            {groupedRange.length === 0 ? (
+            <Select value={preset} options={RANGE_PRESET_OPTIONS} onChange={setPreset} />
+
+            {preset === 'custom' && (
+              <DateRangeFilterBar
+                from={customFrom}
+                to={customTo}
+                onChangeFrom={setCustomFrom}
+                onChangeTo={setCustomTo}
+              />
+            )}
+
+            <Text style={styles.rangeCaption}>
+              {from === to
+                ? formatDateForDisplay(from)
+                : `${formatDateForDisplay(from)} – ${formatDateForDisplay(to)}`}
+            </Text>
+
+            {grouped.length === 0 ? (
               <Text style={styles.emptyText}>No entries in this range.</Text>
             ) : (
-              groupedRange.map((group) => (
+              grouped.map((group) => (
                 <View key={group.date} style={styles.rangeGroup}>
                   <View style={styles.rangeGroupHeader}>
                     <Text style={styles.rangeGroupDate}>{formatDateForDisplay(group.date)}</Text>
@@ -123,6 +159,13 @@ export default function DashboardScreen() {
                 </View>
               ))
             )}
+          </Card>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={typography.heading}>Totals by day</Text>
+          <Card>
+            <MilkBarChart data={chartData} />
           </Card>
         </View>
       </ScrollView>
@@ -143,16 +186,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     gap: spacing.sm,
   },
-  calendarCard: {
-    marginTop: spacing.sm,
-  },
-  dayDetailCard: {
-    marginTop: spacing.sm,
-  },
-  dayDetailTitle: {
-    ...typography.body,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
+  rangeCaption: {
+    ...typography.caption,
+    marginBottom: spacing.sm,
   },
   emptyText: {
     ...typography.caption,
@@ -166,12 +202,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   rangeGroupDate: {
-    ...typography.body,
-    fontWeight: '600',
+    ...typography.bodyStrong,
   },
   rangeGroupTotal: {
-    ...typography.body,
+    ...typography.bodyStrong,
     color: colors.primary,
-    fontWeight: '600',
   },
 });
