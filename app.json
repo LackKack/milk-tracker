@@ -13,8 +13,7 @@
       "web"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "baseUrl": "/milk-tracker"
+      "typedRoutes": true
     },
     "ios": {
       "supportsTablet": true

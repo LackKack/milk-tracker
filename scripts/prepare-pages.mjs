@@ -1,7 +1,8 @@
-// Post-processes `expo export -p web` output in dist/ for GitHub Pages.
+// Post-processes `expo export -p web` output in dist/ for static hosting
+// (GitHub Pages or Vercel).
 import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 
-const BASE = '/milk-tracker';
+const BASE = process.env.EXPO_BASE_URL ?? '';
 const dist = new URL('../dist/', import.meta.url);
 
 copyFileSync(new URL('../assets/icon.png', import.meta.url), new URL('apple-touch-icon.png', dist));
